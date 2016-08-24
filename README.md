@@ -13,8 +13,8 @@ A C++11 header-only object to execute functions on a separate thread. Featuring 
 
     int main()
     {
-        commandQ( cmdPrintf, "Hello " );
-        commandQ.execute( cmdPrintf, "World 1\n" );
-        commandQ( cmdPrintf, "Chained" )( cmdPrintf, " - link 1" )( cmdPrintf, " - link 2\n" );
+        commandQ( cmdPrintf, "Hello " );                                                        //	Method 1 - functor
+        commandQ.execute( cmdPrintf, "World 1\n" );                                             //	Method 2 - function
+        commandQ( cmdPrintf, "Chained" )( cmdPrintf, " - link 1" )( cmdPrintf, " - link 2\n" ); //  Method 3 - chained
         return 0;
     }
