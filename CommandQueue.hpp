@@ -186,6 +186,50 @@ protected:																								//	protected - incase you want to extend it, s
 	}
 
 
+	//
+	//		execute() Stub functions																	//	These function essentially `extract` the function call parameters (data) from the Command Queue buffer and call your function with them!
+	//
+	template< typename TCB >
+	static void executeStubV0( char* data )
+	{
+		( *( ( TCB* ) data ) )();
+	}
+	template< typename TCB, typename T1 >
+	static void executeStubV1( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		function( v1 );
+	}
+	template< typename TCB, typename T1, typename T2 >
+	static void executeStubV2( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
+		function( v1, v2 );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3 >
+	static void executeStubV3( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
+		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
+		function( v1, v2, v3 );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4 >
+	static void executeStubV4( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
+		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
+		const T4 v4 = *( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) );
+		function( v1, v2, v3, v4 );
+	}
+
+
 public:
 	//
 	//		constructors
@@ -205,53 +249,33 @@ public:
 	//
 	//		execute()																					//	Includes a `parameter` stub function which extracts the parameters for you from the buffer! There is an advanced access directly to the data buffer with rawExecute, it's slightly faster because your data doesn't pass through the stub function, but it's a bit harder to work with! This is more convenient!
 	//
-	template< typename TCB >
-	static void autoCommandStubV0( char* data )
-	{
-		( *( ( TCB* ) data ) )();
-	}
-	template< typename TCB >
+	template< typename TCB >																			//	TCB = Type(name)/Template Callback
 	void execute( const TCB function )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		*( ( TCB* ) allocCommand( buffer, autoCommandStubV0< TCB >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) ) ) = function;
+		*( ( TCB* ) allocCommand( buffer, executeStubV0< TCB >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) ) ) = function;					//	`function` pointer address is written to the queue buffer, allocCommand() returns a memory address for use to write the `function` address/pointer
 
 		releaseBuffer( buffer );
-	}
-	template< typename TCB, typename T1 >
-	static void autoCommandStubV1( char* data )
-	{
-		const TCB function = *( ( TCB* ) data );
-		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
-		function( v1 );
 	}
 	template< typename TCB, typename T1 >
 	void execute( const TCB function, const T1 v1 )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		char* data = allocCommand( buffer, autoCommandStubV1< TCB, T1 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) );
-		*( ( TCB* ) data ) = function;
-		data += sizeof( TCB* );
-		*( ( T1* ) data ) = v1;
+		char* data = allocCommand( buffer, executeStubV1< TCB, T1 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) );			//	`function` pointer address AND T1 parameter is written to the queue buffer!
+		*( ( TCB* ) data ) = function;																											//	Here we actually WRITE the function pointer, the line above just allocates/reserves space on the queue, like malloc() it returns a pointer to the `data` section in the queue, of `size` bytes!
+		data += sizeof( TCB* );																													//	We do some pointer addition, to move to the next parameter
+		*( ( T1* ) data ) = v1;																													//	This is where we actually the parameter to the queue buffer
 
 		releaseBuffer( buffer );
-	}
-	template< typename TCB, typename T1, typename T2 >
-	static void autoCommandStubV2( char* data )
-	{
-		const TCB function = *( ( TCB* ) data );
-		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
-		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
-		function( v1, v2 );
 	}
 	template< typename TCB, typename T1, typename T2 >
 	void execute( const TCB function, const T1 v1, const T2 v2 )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		char* data = allocCommand( buffer, autoCommandStubV2< TCB, T1, T2 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) );
+		char* data = allocCommand( buffer, executeStubV2< TCB, T1, T2 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) );
 		*( ( TCB* ) data ) = function;
 		data += sizeof( TCB* );
 		*( ( T1* ) data ) = v1;
@@ -261,20 +285,11 @@ public:
 		releaseBuffer( buffer );
 	}
 	template< typename TCB, typename T1, typename T2, typename T3 >
-	static void autoCommandStubV3( char* data )
-	{
-		const TCB function = *( ( TCB* ) data );
-		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
-		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
-		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
-		function( v1, v2, v3 );
-	}
-	template< typename TCB, typename T1, typename T2, typename T3 >
 	void execute( const TCB function, const T1 v1, const T2 v2, const T3 v3 )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		char* data = allocCommand( buffer, autoCommandStubV3< TCB, T1, T2, T3 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) );
+		char* data = allocCommand( buffer, executeStubV3< TCB, T1, T2, T3 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) );
 		*( ( TCB* ) data ) = function;
 		data += sizeof( TCB* );
 		*( ( T1* ) data ) = v1;
@@ -286,21 +301,11 @@ public:
 		releaseBuffer( buffer );
 	}
 	template< typename TCB, typename T1, typename T2, typename T3, typename T4 >
-	static void autoCommandStubV4( char* data )
-	{
-		const TCB function = *( ( TCB* ) data );
-		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
-		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
-		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
-		const T4 v4 = *( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) );
-		function( v1, v2, v3, v4 );
-	}
-	template< typename TCB, typename T1, typename T2, typename T3, typename T4 >
 	void execute( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4 )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		char* data = allocCommand( buffer, autoCommandStubV4< TCB, T1, T2, T3, T4 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) );
+		char* data = allocCommand( buffer, executeStubV4< TCB, T1, T2, T3, T4 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) );
 		*( ( TCB* ) data ) = function;
 		data += sizeof( TCB* );
 		*( ( T1* ) data ) = v1;
@@ -375,7 +380,7 @@ public:
 
 
 	//
-	//		executeWithCopy()																			//	advanced! Copies the raw data directly to the buffer!
+	//		executeWithCopy()																			//	advanced! Copies the raw data directly to the buffer! You probably won't ever need it! It allows me to write raw data to the Command Queue buffers, for example, raw TCP/UDP data packets from the network!
 	//
 	template< typename TCB >
 	void executeWithCopy( const TCB function, const void* data, const uint32_t size )
@@ -408,19 +413,19 @@ public:
 	//
 	//		join
 	//
-private:
+private:																								//	They are both here together for reference!
 	static void join_cb( CommandQueue* commandQ, bool* done )
 	{
-		*done = true;
-		commandQ->cvJoin.notify_all();
+		*done = true;																					//	This sets the `done` bool below, via dereferenced pointer, which is read by the lambda function in the cvJoin.wait() statement below!
+		commandQ->cvJoin.notify_one();
 	}
 public:
-	void join()
+	void join()																							//	Man, I really don't want to have to explain how this works ... just too technical! Read about condition variables and lambdas.
 	{
 		bool done = false;
 		this->execute( join_cb, this, &done );
 		std::unique_lock<std::mutex> lock( this->mtxDequeue );
-		cvJoin.wait( lock, [&] { return done; } );
+		cvJoin.wait( lock, [&] { return done; } );														//	Condition variables can be signaled by the operating system and return randomly, so we need a way to `signal` them that they must return from OUR `done` message only, that's what the lambda function does!
 		lock.unlock();
 	}
 
