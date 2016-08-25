@@ -16,6 +16,6 @@ A C++11 header-only object to execute functions on a separate thread. Featuring 
         commandQ( cmdPrintf, "Hello " );                                            //	Method 1 - functor
         commandQ.execute( cmdPrintf, "World\n" );                                   //	Method 2 - function
         commandQ( cmdPrintf, "Chained" )( cmdPrintf, " - link 1" )( cmdPrintf, " - link 2\n" ); //  Method 3
-        commandQ.join(); // The thread doesn't actually terminate here, you can issue more commands!
+        commandQ.join();         // The thread doesn't actually terminate here, you can issue more commands!
         return 0;
     }
