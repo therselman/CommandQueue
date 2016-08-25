@@ -228,6 +228,29 @@ protected:																								//	protected - incase you want to extend it, s
 		const T4 v4 = *( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) );
 		function( v1, v2, v3, v4 );
 	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5 >
+	static void executeStubV5( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
+		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
+		const T4 v4 = *( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) );
+		const T5 v5 = *( ( T5* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) );
+		function( v1, v2, v3, v4, v5 );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6 >
+	static void executeStubV6( char* data )
+	{
+		const TCB function = *( ( TCB* ) data );
+		const T1 v1 = *( ( T1* ) ( data + sizeof( TCB* ) ) );
+		const T2 v2 = *( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) );
+		const T3 v3 = *( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) );
+		const T4 v4 = *( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) );
+		const T5 v5 = *( ( T5* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) );
+		const T6 v6 = *( ( T6* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) ) );
+		function( v1, v2, v3, v4, v5, v6 );
+	}
 
 
 public:
@@ -265,8 +288,7 @@ public:
 
 		char* data = allocCommand( buffer, executeStubV1< TCB, T1 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) );			//	`function` pointer address AND T1 parameter is written to the queue buffer!
 		*( ( TCB* ) data ) = function;																											//	Here we actually WRITE the function pointer, the line above just allocates/reserves space on the queue, like malloc() it returns a pointer to the `data` section in the queue, of `size` bytes!
-		data += sizeof( TCB* );																													//	We do some pointer addition, to move to the next parameter
-		*( ( T1* ) data ) = v1;																													//	This is where we actually the parameter to the queue buffer
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;																							//	This is where we actually write the parameter to the queue buffer, We do some pointer addition, to move to the next parameter
 
 		releaseBuffer( buffer );
 	}
@@ -277,10 +299,8 @@ public:
 
 		char* data = allocCommand( buffer, executeStubV2< TCB, T1, T2 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) );
 		*( ( TCB* ) data ) = function;
-		data += sizeof( TCB* );
-		*( ( T1* ) data ) = v1;
-		data += sizeof( T1 );
-		*( ( T2* ) data ) = v2;
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;
+		*( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) ) = v2;
 
 		releaseBuffer( buffer );
 	}
@@ -291,12 +311,9 @@ public:
 
 		char* data = allocCommand( buffer, executeStubV3< TCB, T1, T2, T3 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) );
 		*( ( TCB* ) data ) = function;
-		data += sizeof( TCB* );
-		*( ( T1* ) data ) = v1;
-		data += sizeof( T1 );
-		*( ( T2* ) data ) = v2;
-		data += sizeof( T2 );
-		*( ( T3* ) data ) = v3;
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;
+		*( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) ) = v3;
 
 		releaseBuffer( buffer );
 	}
@@ -307,14 +324,41 @@ public:
 
 		char* data = allocCommand( buffer, executeStubV4< TCB, T1, T2, T3, T4 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) );
 		*( ( TCB* ) data ) = function;
-		data += sizeof( TCB* );
-		*( ( T1* ) data ) = v1;
-		data += sizeof( T1 );
-		*( ( T2* ) data ) = v2;
-		data += sizeof( T2 );
-		*( ( T3* ) data ) = v3;
-		data += sizeof( T3 );
-		*( ( T4* ) data ) = v4;
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;
+		*( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) ) = v3;
+		*( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) ) = v4;
+
+		releaseBuffer( buffer );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5 >
+	void execute( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5 )
+	{
+		queue_buffer_t* buffer = acquireBuffer();
+
+		char* data = allocCommand( buffer, executeStubV5< TCB, T1, T2, T3, T4, T5 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) );
+		*( ( TCB* ) data ) = function;
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;
+		*( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) ) = v3;
+		*( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) ) = v4;
+		*( ( T5* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) ) = v5;
+
+		releaseBuffer( buffer );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6 >
+	void execute( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5, const T6 v6 )
+	{
+		queue_buffer_t* buffer = acquireBuffer();
+
+		char* data = allocCommand( buffer, executeStubV6< TCB, T1, T2, T3, T4, T5, T6 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) + sizeof( T6 ) );
+		*( ( TCB* ) data ) = function;
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;
+		*( ( T2* ) ( data + sizeof( TCB* ) + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) ) ) = v3;
+		*( ( T4* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) ) = v4;
+		*( ( T5* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) ) = v5;
+		*( ( T6* ) ( data + sizeof( TCB* ) + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) ) ) = v6;
 
 		releaseBuffer( buffer );
 	}
@@ -374,6 +418,35 @@ public:
 		*( ( T2* ) ( data + sizeof( T1 ) ) ) = v2;
 		*( ( T3* ) ( data + sizeof( T1 ) + sizeof( T2 ) ) )= v3;
 		*( ( T4* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) )= v4;
+
+		releaseBuffer( buffer );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5 >
+	void rawExecute( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5 )
+	{
+		queue_buffer_t* buffer = acquireBuffer();
+
+		char* data = allocCommand( buffer, function, sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) );
+		*( ( T1* ) data ) = v1;
+		*( ( T2* ) ( data + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( T1 ) + sizeof( T2 ) ) )= v3;
+		*( ( T4* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) )= v4;
+		*( ( T5* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) )= v5;
+
+		releaseBuffer( buffer );
+	}
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6 >
+	void rawExecute( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5, const T6 v6 )
+	{
+		queue_buffer_t* buffer = acquireBuffer();
+
+		char* data = allocCommand( buffer, function, sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) + sizeof( T6 ) );
+		*( ( T1* ) data ) = v1;
+		*( ( T2* ) ( data + sizeof( T1 ) ) ) = v2;
+		*( ( T3* ) ( data + sizeof( T1 ) + sizeof( T2 ) ) )= v3;
+		*( ( T4* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) ) )= v4;
+		*( ( T5* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) ) )= v5;
+		*( ( T6* ) ( data + sizeof( T1 ) + sizeof( T2 ) + sizeof( T3 ) + sizeof( T4 ) + sizeof( T5 ) ) )= v6;
 
 		releaseBuffer( buffer );
 	}
@@ -443,6 +516,10 @@ public:
 	CommandQueue & operator ()( const TCB function, const T1 v1, const T2 v2, const T3 v3 ) { this->execute( function, v1, v2, v3 ); return *this; }
 	template< typename TCB, typename T1, typename T2, typename T3, typename T4 >
 	CommandQueue & operator ()( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4 ) { this->execute( function, v1, v2, v3, v4 ); return *this; }
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5 >
+	CommandQueue & operator ()( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5 ) { this->execute( function, v1, v2, v3, v4, v5 ); return *this; }
+	template< typename TCB, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6 >
+	CommandQueue & operator ()( const TCB function, const T1 v1, const T2 v2, const T3 v3, const T4 v4, const T5 v5, const T6 v6 ) { this->execute( function, v1, v2, v3, v4, v5, v6 ); return *this; }
 
 
 	//
