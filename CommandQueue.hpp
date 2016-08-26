@@ -340,12 +340,23 @@ public:
 	//
 	//		execute()																					//	Includes a `parameter` stub function which extracts the parameters for you from the buffer! There is an advanced access directly to the data buffer with rawExecute, it's slightly faster because your data doesn't pass through the stub function, but it's a bit harder to work with! This is more convenient!
 	//
+	/*
 	template< typename TCB >																			//	TCB = Type(name)/Template Callback
 	void execute( const TCB function )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		*( ( TCB* ) allocCommand( buffer, executeStubV0< TCB >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) ) ) = function;					//	`function` pointer address is written to the queue buffer, allocCommand() returns a memory address for use to write the `function` address/pointer
+		*( ( TCB* ) allocCommand( buffer, executeStubV0< TCB >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) ) ) = function;						//	`function` pointer address is written to the queue buffer, allocCommand() returns a memory address for use to write the `function` address/pointer
+
+		releaseBuffer( buffer );
+	}
+	*/
+	void execute( void (*function)() )																	//	This function is not like the rest! This uses a hard-coded function declaration, so we can easily support anonymous lambda functions that don't return anything! Lambda functions cannot use templates, so we removed the template from this one!
+	{
+		queue_buffer_t* buffer = acquireBuffer();
+
+		typedef void (*function_t)();
+		*( ( function_t* ) allocCommand( buffer, executeStubV0< function_t >, sizeof( PFNCommandHandler* ) + sizeof( function_t* ) ) ) = function;	//	`function` pointer address is written to the queue buffer, allocCommand() returns a memory address for use to write the `function` address/pointer
 
 		releaseBuffer( buffer );
 	}
@@ -354,9 +365,9 @@ public:
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
-		char* data = allocCommand( buffer, executeStubV1< TCB, T1 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) );			//	`function` pointer address AND T1 parameter is written to the queue buffer!
-		*( ( TCB* ) data ) = function;																											//	Here we actually WRITE the function pointer, the line above just allocates/reserves space on the queue, like malloc() it returns a pointer to the `data` section in the queue, of `size` bytes!
-		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;																							//	This is where we actually write the parameter to the queue buffer, We do some pointer addition, to move to the next parameter
+		char* data = allocCommand( buffer, executeStubV1< TCB, T1 >, sizeof( PFNCommandHandler* ) + sizeof( TCB* ) + sizeof( T1 ) );				//	`function` pointer address AND T1 parameter is written to the queue buffer!
+		*( ( TCB* ) data ) = function;																												//	Here we actually WRITE the function pointer, the line above just allocates/reserves space on the queue, like malloc() it returns a pointer to the `data` section in the queue, of `size` bytes!
+		*( ( T1* ) ( data + sizeof( TCB* ) ) ) = v1;																								//	This is where we actually write the parameter to the queue buffer, We do some pointer addition, to move to the next parameter
 
 		releaseBuffer( buffer );
 	}
@@ -627,7 +638,7 @@ public:
 	//		executeWithCopy()																			//	advanced! Copies the raw data directly to the buffer! You probably won't ever need it! It allows me to write raw data to the Command Queue buffers, for example, raw TCP/UDP data packets from the network!
 	//
 	template< typename TCB >
-	void executeWithCopy( const TCB function, const void* data, const uint32_t size )
+	void rawExecuteWithCopy( const TCB function, const void* data, const uint32_t size )
 	{
 		queue_buffer_t* buffer = acquireBuffer();
 
@@ -677,8 +688,10 @@ public:
 	//
 	//		operator ()		functors!																	//	NOTE: If you create an object pointer out of this (with `new`), then you need to use (*objname)(function_to_call) ... note the object/pointer dereference ... it sucks I know!
 	//
-	template< typename TCB >
-	CommandQueue & operator ()( const TCB function ) { this->execute( function ); return *this; }
+//	template< typename TCB >
+//	CommandQueue & operator ()( const TCB function ) { this->execute( function ); return *this; }		//	original
+	CommandQueue & operator ()( void (*function)() ) { this->execute( function ); return *this; }		//	new - to support basic lambda functions like `[] { printf( "Hi" ); }` ... this forces the lambda to generate a `function pointer` ... the other functions cannot do this, becase lambdas cannot be templated, that's why I removed the template here! It has no values, only the `void` on return which will be common for all these functions!
+
 	template< typename TCB, typename T1 >
 	CommandQueue & operator ()( const TCB function, const T1 v1 ) { this->execute( function, v1 ); return *this; }
 	template< typename TCB, typename T1, typename T2 >
